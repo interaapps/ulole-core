@@ -22,6 +22,10 @@ global $ULOLE_CONFIG, $ULOLE_CONFIG_ENV, $SQL_DATABASES, $TESTSERVER;
 $ULOLE_CONFIG = json_decode(file_get_contents("conf.json"));
 \modules\ulole\Config::$config = $ULOLE_CONFIG;
 
+if (in_array("CONTENT_TYPE", $_SERVER) && strpos($_SERVER["CONTENT_TYPE"], "application/json") !== false){
+    $_POST = json_decode(file_get_contents('php://input'), true);
+}
+
 // \ulole\core\classes\Lang::setLang((isset($ULOLE_CONFIG->options->defaultlang)) ? $ULOLE_CONFIG->options->defaultlang : "en");
 
 
