@@ -30,10 +30,10 @@ class Compile {
             "@while(("=>'<?php while(',
             
             "@import(("=>"<?php import(",
-            "@view(("=>"<?php modules\\deverm\\Router::view(",
-            "@component(("=>"<?php modules\\deverm\\Router::view(",
-            "@comp(("=>"<?php modules\\deverm\\Router::view(",
-            "@template(("=>"<?php modules\\deverm\\Router::tmpl(",
+            "@view(("=>"<?php view(",
+            "@component(("=>"<?php view(",
+            "@comp(("=>"<?php view(",
+            "@template(("=>"<?php tmpl(",
 
             "))!"=>"); ?>",
             "))#"=>"):?>",
