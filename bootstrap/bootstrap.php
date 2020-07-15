@@ -71,3 +71,12 @@ if (file_exists("initscripts.json")) {
 function defaultValue($var, $default){
     return isset($var) && $var !== NULL && $var !== null ? $var : $default;
 }
+
+
+function tmpl($templatesDirectory_name, $vars=false) {
+    \modules\deverm\Router::tmpl($templatesDirectory_name, $vars);
+}
+
+function view($templatesDirectory_name, $vars=false) {
+    \modules\deverm\Router::view($templatesDirectory_name, $vars);
+}
