@@ -1,11 +1,14 @@
 {
     "name": "ulole",
-    "version": "2.0.1",
+    "version": "3.0.0",
     "description": "",
     "author": "",
     "keywords": [
         ""
     ],
     "modules": {},
-    "namespaces": {}
+    "namespaces": {},
+    "namespace_bindings": {
+    	"de\\interaapps\\ulole\\core": "de/interaapps/ulole/core"
+    },
 }

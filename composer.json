@@ -1,6 +1,7 @@
 {
     "name": "interaapps/ulole",
     "type": "library",
+    "version": "3.0.0",
     "authors": [
         {
             "name": "JulianFun123",
@@ -8,10 +9,11 @@
         }
     ],
     "require": {
+    	"php": ">=7.0.0"
     },
     "autoload": {
         "psr-4": {
-            "modules\\ulole\\": "./"
+            "de\\interaapps\\ulole\\core\\": "./de/interaapps/ulole/core"
         }
     }
 }

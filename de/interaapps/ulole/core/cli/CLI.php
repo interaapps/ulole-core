@@ -1,9 +1,9 @@
 <?php
-namespace modules\ulole\cli;
+namespace de\interaapps\ulole\core\cli;
 
-class CLI {
-    public $commands;
-    public $descriptions;
+ class CLI {
+    public $commands = [];
+    public $descriptions = [];
     /**
      * Change the not found errormessage
      */
@@ -11,8 +11,9 @@ class CLI {
     /** 
      * Shows a list with all commands on function not found error
      */
-    public $showArgsOnError=false;
+    public $showArgsOnError=true;
 
+    
     /**
      * Register a new command
      * @param String function-name (Command)
@@ -27,19 +28,21 @@ class CLI {
     /**
      * Runs a command
      */
-    public function run($run, $argv) {
-        if (isset($this->commands[$run])) {
-            $function = ($this->commands[$run]);
-            echo $function($argv);
+    public function run($args, $command = null) {
+        if ($command === null)
+            $command = $args[0];
+        if (isset($this->commands[$command])) {
+            $function = ($this->commands[$command]);
+            echo $function($args);
         } else {
             if ($this->errorMessage != null) 
                 echo $this->errorMessage;
             else
-                echo "\033[91m᮰ ERROR\033[0m: Function \"".$run."\" not found!\n";
+                echo Colors::PREFIX_ERROR."Function \"".$command."\" not found!\n";
             
             
             if ($this->showArgsOnError) {
-                $showArgs = "\033[91m᮰\033[0m Those are some valid functions: ";
+                $showArgs = Colors::PREFIX_DONE."Those are some valid functions: ";
                 foreach ($this->commands as $command=>$value) {
                     $showArgs .= "\n  \033[92m- \033[0m".$command.": ".$this->descriptions[$command];
                 }
@@ -48,4 +51,14 @@ class CLI {
 
         }
     }
-}
+
+     public function getCommands(): array {
+         return $this->commands;
+     }
+
+     public function getDescriptions(): array {
+         return $this->descriptions;
+     }
+ }
+
+ ?>
