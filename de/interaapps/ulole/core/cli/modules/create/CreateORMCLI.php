@@ -23,7 +23,7 @@ use de\interaapps\ulole\orm\ORMModel;
 class $args[2] {
     use ORMModel;
     
-    public \$id;
+    public \$id, \$name, \$gender, \$created_at;
 
     protected \$ormSettings = [
         'identifier' => 'id'
@@ -51,5 +51,45 @@ class $args[2] {
                 Colors::error("Please give me a name!");
             }
         }, "Create a model");
+
+        $cli->register("create:migration", function($args){
+            if (isset($args[2]) && isset($args[3])) {
+                $className = "migration_".date("ymd_Hms")."_".$args[2];
+                $type = strtoupper($args[3]);
+                $outputFile = "resources/migrations/".$className.".php";
+
+                $output = "<?php
+namespace testinglocal\migrations;
+
+use de\interaapps\ulole\orm\Database;
+use de\interaapps\ulole\orm\migration\Blueprint;
+use de\interaapps\ulole\orm\migration\Migration;
+
+/**
+ * CHANGED: ".($type == 'NEW' ? 'Created' : "Changed")." table
+ */
+class $className implements Migration {
+    public function up(Database \$database) {
+        return \$database".($type == 'NEW' ? "->create" : "->edit")."(\"users\", function (Blueprint \$blueprint) {
+            ".($type=='NEW' ? "\$blueprint->id();
+            \$blueprint->string(\"name\")->default('John');
+            \$blueprint->enum(\"gender\", [\"FEMALE\", \"MALE\", \"OTHER\", \"NO_ANSWER\"])->default('DO_NOT_ANSWER');
+            \$blueprint->timestamp(\"created_at\")->currentTimestamp();" : "\$blueprint->string(\"name\")->default('Franz');")."
+        });
+    }
+
+    public function down(Database \$database) {
+        ".($type=='NEW' ? "return \$database->drop(\"users\");" : "return \$database->edit(\"users\", function(Blueprint \$blueprint){
+            \$blueprint->string(\"name\")->default('John');
+        });")."
+        
+    }
+}";
+                Colors::done("Created migration in $outputFile!");
+                file_put_contents($outputFile, $output);
+            } else {
+                Colors::error("Please give me a name and type (NEW,EDIT) (like php cli create:migration create_user NEW)!");
+            }
+        }, "Create a migration");
     }
 }
