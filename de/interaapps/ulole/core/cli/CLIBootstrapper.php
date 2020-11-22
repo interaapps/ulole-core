@@ -2,6 +2,7 @@
 namespace de\interaapps\ulole\core\cli;
 
 use de\interaapps\ulole\core\cli\modules\create\CreateORMCLI;
+use de\interaapps\ulole\core\cli\modules\DBNavigatorCLI;
 use de\interaapps\ulole\core\cli\modules\ORMCLI;
 use de\interaapps\ulole\core\cli\modules\ReplCLI;
 
@@ -15,6 +16,7 @@ class CLIBootstrapper {
         $this->register(new FrameworkCLI())
             ->register(new ReplCLI())
             ->register(new ORMCLI)
+            ->register(new DBNavigatorCLI())
             ->register(new CreateORMCLI())
             ;
     }
