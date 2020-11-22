@@ -28,7 +28,7 @@ class ORMCLI extends CLIHandler {
             (new Migrator($args[3]))
                 ->setLogging(true)
                 ->fromFolder("resources/migrations")
-                ->down();
+                ->down($args[2]);
         }, "Downgrades a database");
         $cli->register("migrate:status", function(){
             if (!isset($args[2]))
