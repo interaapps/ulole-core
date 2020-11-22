@@ -156,7 +156,7 @@ class DBNavigatorCLI extends CLIHandler {
                     $action = "SQL";
                 } else {
                     readline_add_history($input);
-                    echo $input;
+                    //echo $input;
                     if (strtolower($input) == 'tables') {
                         $currentScreen = [
                             "action" => "SHOW_TABLES"
