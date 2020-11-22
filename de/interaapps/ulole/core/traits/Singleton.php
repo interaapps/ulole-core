@@ -7,7 +7,7 @@ trait Singleton {
      * Gives you the instance or creates it if it isn't set yet 
      */
     public static function getInstance($firstParams = []){
-        if (self::$instance = null)
+        if (self::$instance === null)
             self::$instance = new static(...$firstParams);
         return static::$instance;
     }
