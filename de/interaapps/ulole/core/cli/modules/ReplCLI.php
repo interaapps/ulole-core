@@ -9,6 +9,9 @@ use de\interaapps\ulole\core\cli\CLIHandler;
 class ReplCLI extends CLIHandler {
     public function registerCommands(CLI $cli) {
         $cli->register("repl", function(){
+            echo Colors::GRAY."ULOLE-PHP-REPL".Colors::BLUE." PHP Version ".phpversion().Colors::ENDC."\n";
+            define('_deccl', "");
+            define('_decfn', "");
             ReplCLI::replLoop();
         }, "A simple repl (CLI based testing environment)");
     }
@@ -20,31 +23,36 @@ class ReplCLI extends CLIHandler {
         while(true) {       
             register_shutdown_function("de\interaapps\ulole\core\cli\modules\ReplCLI::handleFatal");
             set_error_handler("de\interaapps\ulole\core\cli\modules\ReplCLI::handleError");
-
+            
+            self::readlineCompletionHandler();
+            
             if ($opened !== false) {
                 $command .= "\n".readline("... ");
             } else {
                 $command = readline(">>> ");
             }
+            
             $lastChar = substr(trim($command), -1);
             if ($lastChar == '\\' || $lastChar == '(' || $lastChar == '{' || $lastChar == '[' || $lastChar == ',') {
                 $opened = true;
                 $command = rtrim($command, "\\");
             } else
                 $opened = false;
-
+                
             echo Colors::ENDC;
             if ($command == "exit") 
-                exit();
+                die();
             if (!$opened) {
                 try {
+                    readline_add_history($command);
                     if ( strpos($command, ";") === false && strpos($command, "return") === false && strpos($command, "echo") === false )
                         $command = "return ".$command;
                     
                     $return = eval("" . $command . ";");
                     $returnJSON = json_encode($return, JSON_PRETTY_PRINT);
                     echo "\n".self::beautifulOutput($return)."\n";
-                    
+
+                    self::readlineCompletionHandler();
                 } catch (Exception $e) { 
                     echo Colors::BG_RED.Colors::BLUE." ".$e->getMessage()." ".Colors::ENDC."\n";
                 }
@@ -97,5 +105,59 @@ class ReplCLI extends CLIHandler {
 
     public static function handleError($errno, $errstr, $errfile, $errline) {
         echo Colors::BG_RED.Colors::BLUE." ".$errstr." ".Colors::ENDC."\n";
+    }
+
+    public static function readlineCompletionHandler(){
+        readline_completion_function(function($test, $full){
+            $matches = ["exit", "function", "class", "public", "private", "protected", "var", "echo",
+// Helper
+"_decfn;
+function NAME () {
+echo 'Hello world';
+", 
+"_deccl;
+class NAME {
+private \$var;
+", 
+"_newlines;\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+            ];
+
+            // foreach (scandir(".") as $entry){
+            //     if ($entry !== "." && $entry !== "..") {
+            //         array_push($matches, $entry);
+            //     }
+            // }
+            
+            //$matches = array_merge($matches, get_declared_classes());
+            
+            foreach (get_declared_classes() as $clazz) {
+                $matches[] = /*str_replace('\\','\\', */$clazz/*)*/;
+            }
+
+            foreach (get_defined_vars() as $key=>$val) {
+                array_push($matches, $key);
+            }
+            
+            foreach (get_defined_constants() as $key=>$val) {
+                array_push($matches, $key);
+            }
+
+            $declaredFunctions = get_defined_functions();
+
+            if (isset($declaredFunctions["user"]))
+                $matches = array_merge($matches, $declaredFunctions["user"]);
+
+            if (isset($declaredFunctions["internal"]))
+                $matches = array_merge($matches, $declaredFunctions["internal"]);
+
+            if (($key = array_search('_decfn', $matches)) !== false) {
+                unset($matches[$key]);
+            }
+            if (($key = array_search('_deccl', $matches)) !== false) {
+                unset($matches[$key]);
+            }
+
+            return $matches;
+        });
     }
 }
