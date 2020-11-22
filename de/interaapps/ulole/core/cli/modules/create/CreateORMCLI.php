@@ -59,7 +59,7 @@ class $args[2] {
                 $outputFile = "resources/migrations/".$className.".php";
 
                 $output = "<?php
-namespace testinglocal\migrations;
+namespace resources\migrations;
 
 use de\interaapps\ulole\orm\Database;
 use de\interaapps\ulole\orm\migration\Blueprint;
@@ -73,7 +73,7 @@ class $className implements Migration {
         return \$database".($type == 'NEW' ? "->create" : "->edit")."(\"users\", function (Blueprint \$blueprint) {
             ".($type=='NEW' ? "\$blueprint->id();
             \$blueprint->string(\"name\")->default('John');
-            \$blueprint->enum(\"gender\", [\"FEMALE\", \"MALE\", \"OTHER\", \"NO_ANSWER\"])->default('DO_NOT_ANSWER');
+            \$blueprint->enum(\"gender\", [\"FEMALE\", \"MALE\", \"OTHER\", \"NO_ANSWER\"])->default('NO_ANSWER');
             \$blueprint->timestamp(\"created_at\")->currentTimestamp();" : "\$blueprint->string(\"name\")->default('Franz');")."
         });
     }
