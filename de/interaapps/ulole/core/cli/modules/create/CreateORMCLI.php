@@ -57,6 +57,8 @@ class $args[2] {
                 $className = "migration_".date("ymd_Hms")."_".$args[2];
                 $type = strtoupper($args[3]);
                 $outputFile = "resources/migrations/".$className.".php";
+                if (!isset($args[4]))
+                    $args[4] = "users";
 
                 $output = "<?php
 namespace resources\migrations;
@@ -70,7 +72,7 @@ use de\interaapps\ulole\orm\migration\Migration;
  */
 class $className implements Migration {
     public function up(Database \$database) {
-        return \$database".($type == 'NEW' ? "->create" : "->edit")."(\"users\", function (Blueprint \$blueprint) {
+        return \$database".($type == 'NEW' ? "->create" : "->edit")."(\"$args[4]\", function (Blueprint \$blueprint) {
             ".($type=='NEW' ? "\$blueprint->id();
             \$blueprint->string(\"name\")->default('John');
             \$blueprint->enum(\"gender\", [\"FEMALE\", \"MALE\", \"OTHER\", \"NO_ANSWER\"])->default('NO_ANSWER');
@@ -79,7 +81,7 @@ class $className implements Migration {
     }
 
     public function down(Database \$database) {
-        ".($type=='NEW' ? "return \$database->drop(\"users\");" : "return \$database->edit(\"users\", function(Blueprint \$blueprint){
+        ".($type=='NEW' ? "return \$database->drop(\"$args[4]\");" : "return \$database->edit(\"$args[4]\", function(Blueprint \$blueprint){
             \$blueprint->string(\"name\")->default('John');
         });")."
         
