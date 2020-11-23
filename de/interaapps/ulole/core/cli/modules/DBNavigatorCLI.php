@@ -17,16 +17,18 @@ class DBNavigatorCLI extends CLIHandler {
          * inserted.
          *  (Uses json)
          */
-        $cli->register("db:nav", function(){
+        $cli->register("db", function(){
             $allTables = [];
             $db = UloleORM::getDatabase('main');
+            
+            $db->getConnection()->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
             $currentScreen = [
                 "action" => "TABLES"
             ];
     
             while (true) {
                 $action = $currentScreen["action"];
-                if ($action == 'TABLES' || $action == 'SHOW_TABLES') {
+                if ($action == 'TABLES') {
                     $tables = $db->getConnection()->query("SHOW TABLES;")->fetchAll(\PDO::FETCH_NUM);
                     $allTables = [];
                     foreach ($tables as $index=>$table){
@@ -39,31 +41,44 @@ class DBNavigatorCLI extends CLIHandler {
                     echo Colors::GRAY. $currentScreen["query"].Colors::ENDC."\n";
                     $res = $this->responseTransformer($db, $currentScreen["query"], $tableAction);
                     
-                    
+                    if (isset($currentScreen['removeAfter']) && $currentScreen['removeAfter'])
+                        $currentScreen = ["action" => "NONE"];
 
                     if ($res["type"] == 'ENTRIES') {
                         $columns = $res["columns"];
                         $entries = $res["entries"];
 
                         $columnPads = [];
+                        $columnMaxLength = 30;
+                        if (isset($currentScreen["len"]))
+                            $columnMaxLength = $currentScreen["len"];
+
+                        foreach ($columns as $column)
+                            $columnPads[$column] = strlen($column)+( isset($currentScreen["order"]) ? 1 : 0 );
 
                         foreach ($entries as $entry){
                             foreach ($entry as $columnName=>$value) {
                                 if (!isset($columnPads[$columnName]) || (isset($columnPads[$columnName]) && strlen($value) > $columnPads[$columnName]))
-                                    $columnPads[$columnName] = strlen($value)+2;
-
-                                if ($columnPads[$columnName] > 30)
-                                    $columnPads[$columnName] = 30;
+                                    $columnPads[$columnName] = strlen($value)+1;
+                                
+                                if (count($entries) !== 1 && $columnPads[$columnName] > $columnMaxLength)
+                                    $columnPads[$columnName] = $columnMaxLength;
                             }
                         }
                         $splitter = Colors::GRAY." | ".Colors::ENDC;
                         $opened = true;
                         foreach ($columns as $column) {
+                            $arrow = "";
+                            if (isset($currentScreen["order"])) {
+                                if (strtolower($currentScreen["order"]) == strtolower($column))
+                                    $arrow = "▼";
+                                else if (strtolower($currentScreen["order"]) == strtolower($column)." desc")
+                                    $arrow = "▲";
+                            }
                             echo
                                 ($opened ? "" : $splitter) 
                                 .Colors::YELLOW
-                                .str_pad($column, $columnPads[$column])
-                                .Colors::ENDC;
+                                .str_pad($column.$arrow, $columnPads[$column]).Colors::ENDC;
                             $opened = false;
                         }
                         echo "\n";
@@ -89,30 +104,46 @@ class DBNavigatorCLI extends CLIHandler {
                                 " ".Colors::TURQUIOUS."| ".
                                 (
                                     Colors::GREEN.
-                                    "(-) NEXT PAGE"
+                                    "order={name} {desc?}"
+                                ).
+                                " ".Colors::TURQUIOUS."| ".
+                                (
+                                    Colors::GREEN.
+                                    "limit={limit:5}"
+                                ).
+                                " ".Colors::TURQUIOUS."| ".
+                                (
+                                    Colors::GREEN.
+                                    "where={query}"
+                                ).
+                                " ".Colors::TURQUIOUS."| ".
+                                (
+                                    Colors::GREEN.
+                                    "(-) PREV PAGE"
                                 ).
                             " ".Colors::ENDC."\n";
-                    } else if ($res["type"] == 'QUERY') {
-                        if ($res["type"]) {
+                    } else if ($res["type"] == 'request') {
+                        if ($res["success"]) {
                             Colors::done(Colors::GRAY."no entries returned".Colors::ENDC);
                         } else {
-                            Colors::error("SQL Error: ".$res["statement"]->errorInfo());
-                        }
+                            $error = $db->getConnection()->errorInfo();
+                            Colors::error("SQL Error: #".$error[1].Colors::GRAY." (".$error[0].") ".Colors::ENDC.$error[2]);
+                        }// create table if not exists `test` ()
                     }
                 }
 
 
-                readline_completion_function(function() use ($action, $allTables) {
+                readline_completion_function(function($text) use ($action, $allTables) {
                     $matches = [];
                     $matches = array_merge($matches, $allTables);
-                    if ($action == 'SQL') {
+                    if ($action == 'SQL' || strtolower(substr(readline_info()['line_buffer'], 0, 3)) == 'sql') {
                         $keywords = [
                             "INSERT", "FROM",
                             "SELECT", "SET",
                             "UPDATE", "WHERE",
                             "DELETE", "CREATE", 
-                            "TABLE", "IF", "NOT", 
-                            "SHOW", "TABLES", "INTO", "VALUES", "()",
+                            "TABLE", "IF", "NOT", "EXISTS",
+                            "SHOW", "TABLES", "INTO", "VALUES", "JOIN",
                             "ALTER", "CHANGE", "MODIFY",
                             "AND", "BEFORE", "BY", "CALL",
                             "CASE", "CONDITION", "DESC", "DESCRIBE",
@@ -156,16 +187,86 @@ class DBNavigatorCLI extends CLIHandler {
                     $action = "SQL";
                 } else {
                     readline_add_history($input);
-                    //echo $input;
-                    if (strtolower($input) == 'tables') {
+                    
+                    if (strtolower(trim($input)) == 'tables') {
                         $currentScreen = [
-                            "action" => "SHOW_TABLES"
+                            "action" => "TABLES"
                         ];
-                        $action = "SHOW_TABLES";
+                        $action = "TABLES";
+                        continue;
                     }
                 }
 
-                if ($action == "TABLES" && array_key_exists($input-1, $currentScreen['options'])) {
+
+                if (strtolower(trim($input)) == 'exit' || strtolower(trim($input)) == 'quit') {
+                    exit();
+                    break;
+                } else if (strtolower(trim($input)) == 'help') {
+                    $helpList = [
+                        "help" => [
+                            "help" => "Shows you a list with commands",
+                            "help:sql" => "Shows a SQL-Cheatsheet"
+                        ],
+                        "table" => [
+                            "+"     => "Next page",
+                            "-"     => "Previous page",
+                            "limit" => "Set the entries limit (limit={number:5})",
+                            "where" => "Set where clause (where={query}; example: where = id='1' OR id='4')",
+                            "order" => "Set the order by (order={field}; example: order = id; order = password desc (descending order)",
+                        ],
+                        "navigation" => [
+                            "tables" => "Let's you show tables which you can select",
+                            "sql"    => "Opens a multiline SQL-input. Enter with ';' at the end of the statement."
+                        ],
+                    ];
+
+                    echo "\n".Colors::LIGHT_BLUE."Help list: ".Colors::ENDC."\n";
+                    foreach ($helpList as $name=>$entries) {
+                        echo Colors::BLUE.$name.Colors::YELLOW.":".Colors::ENDC."\n";
+                        foreach ($entries as $entry => $description){
+                            echo "  ".Colors::BOLD.Colors::TURQUIOUS.str_pad($entry.Colors::ENDC.Colors::BLUE.":", 18)." ".Colors::GRAY.$description.Colors::ENDC."\n";
+                        }
+                        echo "\n";
+                    }
+                    continue;
+                } else  if (strtolower(trim($input)) == 'help:sql') {
+                    $helpList = [
+"Create Table" => 
+"CREATE TABLE `name` ( 
+    `id` INT AUTO_INCREMENT, 
+    `name` TEXT, 
+    PRIMARY KEY (`id`) 
+);",
+"Delete (Drop) Table" => "DROP TABLE `name`;",
+"Add Column" => 
+"ALTER TABLE ADD `name` `password` TEXT NOT NULL; # ADD <column_name> <type> <options...>",
+"Edit Column" => 
+"ALTER TABLE `name` CHANGE `password` `new_password` TEXT NULL; # CHANGE <column> <rename_name> <type> <options...>",
+
+"Insert entry into Table" => 
+"INSERT INTO `name` (`name`) VALUES ('test');",
+
+                    ];
+
+                    $replacements = [
+                        "#\\" => Colors::GRAY."#\\".Colors::ENDC,
+                        "CREATE" => Colors::BLUE."CREATE".Colors::ENDC,
+                        "TABLE" => Colors::LIGHT_BLUE."TABLE".Colors::ENDC,
+                        "INSERT" => Colors::LIGHT_BLUE."INSERT".Colors::ENDC,
+                        "INTO" => Colors::BLUE."INTO".Colors::ENDC,
+                        "(" => Colors::TURQUIOUS."(".Colors::ENDC,
+                        ")" => Colors::TURQUIOUS.")".Colors::ENDC,
+                    ];
+
+                    echo "\n".Colors::LIGHT_BLUE."SQL-Cheatsheet list: ".Colors::ENDC."\n";
+                    foreach ($helpList as $name=>$sql) {
+                        foreach ($replacements as $from=>$to)
+                            $sql = str_replace($from, $to, $sql);
+                        echo "\n".Colors::BOLD.Colors::TURQUIOUS."# ".$name.Colors::ENDC.Colors::YELLOW.":".Colors::ENDC."\n".$sql."\n";
+                    }
+                    echo "\n";
+                    continue;
+                } else if ($action == "TABLES" && is_numeric(trim($input)) && array_key_exists($input-1, $currentScreen['options'])) {
                     $currentScreen = [
                         "action" => "TABLE",
                         "name"   => $currentScreen['options'][$input-1][0],
@@ -181,45 +282,62 @@ class DBNavigatorCLI extends CLIHandler {
                             $option = trim($option);
                             $optionValue = trim($optionValue);
                             
+                            //           limit
                             if (strtolower($option) == 'limit') {
                                 if (is_numeric($optionValue))
                                     $currentScreen['limit'] = $optionValue;
                                 else Colors::error("Has to be a number!");
+                            //           Max column length
+                            } else if (strtolower($option) == 'len') {
+                                if (is_numeric($optionValue))
+                                    $currentScreen['len'] = $optionValue;
+                                else Colors::error("Has to be a number!");
+                            //           Where id={}
                             } else if (strtolower($option) == 'id') {
                                 if (is_numeric($optionValue))
-                                    $currentScreen['id'] = $optionValue;
-                                else unset($currentScreen['id']);
+                                    $currentScreen['where'] = "`id`=".$optionValue;
+                                else unset($currentScreen["where"]);
+                            //           where={query}
+                            } else if (strtolower($option) == 'where') {
+                                if ($optionValue != "")
+                                    $currentScreen['where'] = $optionValue;
+                                else unset($currentScreen['where']);
+                            //           order
+                            } else if (strtolower($option) == 'order') {
+                                if ($optionValue != "")
+                                    $currentScreen['order'] = $optionValue;
+                                else unset($currentScreen['order']);
                             }
                         } else if ($input == '+') {
-                            echo "Upper";
                             if (isset($currentScreen['page'])) $currentScreen['page'] += 1;
                         } else if ($input == '-') {
                             if (isset($currentScreen['page']) && $currentScreen['page'] != 0) $currentScreen['page'] -= 1;
                         }
-                        echo $currentScreen['limit']."\n";
-                        echo $currentScreen['page']."\n";
                         $currentScreen = array_merge($currentScreen, [
                             "action" => "TABLE",
                             "name"   => $currentScreen['name'],
                             "query"  => "SELECT * FROM `".$currentScreen['name']."` "
-                                ." ".(isset($currentScreen['id']) ? "WHERE id=".$currentScreen['id'] : "")      
+                                .(isset($currentScreen['where']) ? " WHERE ".$currentScreen['where'] : "")      
+                                .(isset($currentScreen['order']) ? " ORDER BY ".$currentScreen['order'] : "")
                                 ." LIMIT ".(isset($currentScreen['limit']) ? $currentScreen['limit'] : "5") 
                                 ." OFFSET ".(isset($currentScreen['page']) && isset($currentScreen['limit']) ? $currentScreen['limit']*$currentScreen['page'] : "0")
-                                
                                 .";"
                         ]);
                     }
                 } else if ($action == "QUERY") {
                     $currentScreen = [
-                        "action" => "NONE"
+                        "action" => "NONE",
+                        "query"  => ""
                     ];
+                    $action = "";
                 } else if($action == 'SQL') {
                     if ( substr(trim($currentScreen['query']), -1) == ';') {
                         $currentScreen = [
                             "action" => "QUERY",
-                            "query"  => $currentScreen["query"]
+                            "query"  => $currentScreen["query"],
+                            "removeAfter" => true
                         ];
-                        readline_add_history($currentScreen["query"]);
+                        readline_add_history("sql\n".$currentScreen["query"]);
                     } else if (substr(trim($currentScreen['query']), -1) == '\\') {
                         $currentScreen['query'] = rtrim($currentScreen['query'], "\\");
                     }
@@ -228,16 +346,21 @@ class DBNavigatorCLI extends CLIHandler {
         }, "A simplified database-navigator");
     }
 
-    private function responseTransformer($db, $sql, $tableAction){
+    private function responseTransformer($db, $sql, $tableAction = false){
         $query = $db->getConnection()->query($sql);
         $response = ["type" => "NONE", "statement" => $query];
-
+        
         if ($query === false) {
             $response = ["type" => "request", "success" => false];
-        } else if ($query->rowCount() === 0 && !$tableAction) {
+            return $response;
+        }
+
+        $resultSet = $query->fetchAll(\PDO::FETCH_OBJ);
+        
+        if ($query->rowCount() === 1 && count($resultSet) == 0 && !$tableAction) {
             $response = ["type" => "request", "success" => true];
         } else {
-            $entries = $query->fetchAll(\PDO::FETCH_OBJ);
+            $entries = $resultSet;
             $columnsChecked = false;
             $response["type"]    = "ENTRIES";
             $response["columns"] = [];
