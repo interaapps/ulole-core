@@ -17,9 +17,11 @@ class DBNavigatorCLI extends CLIHandler {
          * inserted.
          *  (Uses json)
          */
-        $cli->register("db", function(){
+        $cli->register("db", function($args){
+            if (!isset($args[2]))
+                $args[2] = "main";
             $allTables = [];
-            $db = UloleORM::getDatabase('main');
+            $db = UloleORM::getDatabase($args[2]);
             $dbQueries = [
                 "show_tables" => "SHOW TABLES;",
                 "auto_increment" => "AUTO_INCREMENT"
