@@ -106,7 +106,7 @@ class DBNavigatorCLI extends CLIHandler {
                                 $length = $columnPads[$columnName];
 
                                 echo ($opened ? "" : $splitter)
-                                        .substr(str_pad($value, $length), 0, $length);
+                                        .substr(str_pad(str_replace("\n", "\\n", $value), $length), 0, $length);
                                 $opened = false;
                             }
                             echo "\n";
