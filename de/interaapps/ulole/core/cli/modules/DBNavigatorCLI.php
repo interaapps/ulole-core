@@ -20,7 +20,24 @@ class DBNavigatorCLI extends CLIHandler {
         $cli->register("db", function(){
             $allTables = [];
             $db = UloleORM::getDatabase('main');
-            
+            $dbQueries = [
+                "show_tables" => "SHOW TABLES;",
+                "auto_increment" => "AUTO_INCREMENT"
+            ];
+            $driver = $db->getConnection()->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            // Database compatibility
+            if ($driver == 'mysql') {
+
+            } else if ($driver == "sqlite") {
+                $dbQueries["show_tables"] = "SELECT name FROM sqlite_master WHERE type='table';";
+                $dbQueries["auto_increment"] = "PRIMARY KEY AUTOINCREMENT";
+            } else if ($driver == "postgres") {
+                $dbQueries["show_tables"] = "SELECT tablename FROM pg_catalog.pg_tables;";
+                $dbQueries["auto_increment"] = "SERIAL PRIMARY KEY"; // This doesn't work.
+            } else if ($driver == "dblib") {
+                $dbQueries["show_tables"] = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE';";
+                $dbQueries["auto_increment"] = "IDENTITY(1,1) PRIMARY KEY";
+            }
             $db->getConnection()->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
             $currentScreen = [
                 "action" => "TABLES"
@@ -29,7 +46,7 @@ class DBNavigatorCLI extends CLIHandler {
             while (true) {
                 $action = $currentScreen["action"];
                 if ($action == 'TABLES') {
-                    $tables = $db->getConnection()->query("SHOW TABLES;")->fetchAll(\PDO::FETCH_NUM);
+                    $tables = $db->getConnection()->query($dbQueries["show_tables"])->fetchAll(\PDO::FETCH_NUM);
                     $allTables = [];
                     foreach ($tables as $index=>$table){
                         array_push($allTables, $table[0]);
@@ -198,7 +215,7 @@ class DBNavigatorCLI extends CLIHandler {
                 }
 
 
-                if (strtolower(trim($input)) == 'exit' || strtolower(trim($input)) == 'quit') {
+                if (strtolower(trim($input)) == 'exit' || strtolower(trim($input)) == 'quit' || strtolower(trim($input)) == 'logout') {
                     exit();
                     break;
                 } else if (strtolower(trim($input)) == 'help') {
@@ -233,9 +250,9 @@ class DBNavigatorCLI extends CLIHandler {
                     $helpList = [
 "Create Table" => 
 "CREATE TABLE `name` ( 
-    `id` INT AUTO_INCREMENT, 
+    `id` INT ".$dbQueries["auto_increment"].", 
     `name` TEXT, 
-    PRIMARY KEY (`id`) 
+    PRIMARY KEY (`id`) # If PRIMARY KEY is not set in `id`
 );",
 "Delete (Drop) Table" => "DROP TABLE `name`;",
 "Add Column" => 
