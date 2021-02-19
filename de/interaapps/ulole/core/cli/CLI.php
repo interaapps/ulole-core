@@ -4,6 +4,8 @@ namespace de\interaapps\ulole\core\cli;
  class CLI {
     public $commands = [];
     public $descriptions = [];
+    public $applicationAttribs = [];
+
     /**
      * Change the not found errormessage
      */
@@ -17,7 +19,7 @@ namespace de\interaapps\ulole\core\cli;
     /**
      * Register a new command
      * @param String function-name (Command)
-     * @param Function function (example:function() {return "Hello world";})
+     * @param Closure function (example:function() {return "Hello world";})
      * @param String (Optional) Description
      */
     public function register(string $name, $func, string $description="") {
@@ -58,6 +60,15 @@ namespace de\interaapps\ulole\core\cli;
 
      public function getDescriptions(): array {
          return $this->descriptions;
+     }
+
+     public function getApplicationAttrib($i) {
+         return $this->applicationAttribs[$i];
+     }
+
+     public function setApplicationAttrib($key, $value): CLI {
+         $this->applicationAttribs[$key] = $value;
+         return $this;
      }
  }
 

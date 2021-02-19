@@ -2,6 +2,7 @@
 namespace de\interaapps\ulole\core;
 
 use de\interaapps\ulole\core\config\Configuration;
+use de\interaapps\ulole\core\jobs\JobHandler;
 use de\interaapps\ulole\orm\Database;
 use de\interaapps\ulole\orm\UloleORM;
 use de\interaapps\ulole\router\Router;
@@ -10,6 +11,7 @@ abstract class WebApplication {
     private $router;
     private $environment;
     private $inCLI = false;
+    private $jobHandler;
 
     public function start(Environment $environment){
         $this->environment = $environment;
@@ -17,6 +19,8 @@ abstract class WebApplication {
         $this->router = (new Router)
             ->setIncludeDirectory("resources/views")
             ->setNamespace("app\\controller");
+
+        $this->jobHandler = new JobHandler();
 
         $this->init();
         
@@ -71,5 +75,13 @@ abstract class WebApplication {
     public function setInCLI($inCLI) : WebApplication {
         $this->inCLI = $inCLI;
         return $this;
+    }
+
+    public function getJobHandler() : JobHandler {
+        return $this->jobHandler;
+    }
+
+    public function setJobHandler($jobHandler): void {
+        $this->jobHandler = $jobHandler;
     }
 }
