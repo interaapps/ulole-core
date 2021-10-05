@@ -60,21 +60,12 @@ class JobHandler
         return $errors;
     }
 
-    /**
-     * @param string $mode
-     * @return JobHandler
-     */
-    public function setMode(string $mode): JobHandler
-    {
+    public function setMode(string $mode): JobHandler {
         $this->mode = $mode;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getMode(): string
-    {
+    public function getMode(): string {
         return $this->mode;
     }
 }

@@ -1,3 +1,6 @@
 /testing
 /modules
 /uppm.locks.json
+vendor
+.idea
+composer.lock

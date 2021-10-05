@@ -1,14 +1,16 @@
 {
-    "name": "ulole",
-    "version": "3.0.5",
-    "description": "",
-    "author": "",
-    "keywords": [
-        ""
-    ],
-    "modules": {},
-    "namespaces": {},
-    "namespace_bindings": {
-    	"de\\interaapps\\ulole\\core": "de/interaapps/ulole/core"
+    "name": "ulole-core",
+    "version": "3.0.6",
+    "repositories": [],
+    "run": {},
+    "build": {},
+    "serve": {},
+    "modules": {
+        "interaapps\/jsonplus": "1.0.0",
+        "uloleorm": "2.0.1",
+        "deverm": "5.0.2"
+    },
+    "namespaceBindings": {
+        "de\\interaapps\\ulole\\core": "src/main/de\/interaapps\/ulole\/core"
     }
 }
