@@ -16,22 +16,26 @@ class CreateORMCLI extends CLIHandler {
                     if (readline("Continue (y): ") != 'y')
                         return "Declined";
                 }
+                $lower = $args[2] . 's';
                 $output = "<?php
 namespace app\model;
 
+use de\interaapps\ulole\orm\attributes\Table;
+use de\interaapps\ulole\orm\migration\Column;
 use de\interaapps\ulole\orm\ORMModel;
 
+#[Table('$lower')]
 class $args[2] {
     use ORMModel;
     
-    public \$id, \$name, \$gender, \$created_at;
-
-    protected \$ormSettings = [
-        'identifier' => 'id'
-    ];
+    #[Column]
+    public int \$id;
+    
+    #[Column]
+    public ?string \$name;
 }";
                 Colors::done("Created model in $outputFile!");
-                $lower = $args[2] . 's';
+
                 $lower[0] = strtolower($lower[0]);
                 echo
                     "\nTo register: \n\n"
@@ -41,8 +45,6 @@ class $args[2] {
                     . "UloleORM" . Colors::TURQUIOUS . "::"
                     . Colors::BLUE . "register" .
                     Colors::TURQUIOUS . "(" .
-                    Colors::GREEN . '"' . $lower . '"' .
-                    Colors::TURQUIOUS . ", " .
                     Colors::YELLOW . "\\app\\model\\" . $args[2] . Colors::TURQUIOUS . "::" . Colors::BLUE . "class" .
                     Colors::TURQUIOUS . ");" .
                     "  " .

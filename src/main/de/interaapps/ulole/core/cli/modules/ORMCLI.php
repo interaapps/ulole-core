@@ -48,7 +48,7 @@ class ORMCLI extends CLIHandler {
             echo str_pad(" model", $modelLength) . " | migrated | version\n";
 
             foreach ($migrations as $migrationClazz) {
-                $migrationModel = MigrationModel::table($args[2])->where("migrated_model", $migrationClazz)->get();
+                $migrationModel = MigrationModel::table($args[2])->where("migrated_model", $migrationClazz)->first();
                 $exists = $migrationModel !== null;
 
                 $migrationClazzSplitted = explode("\\", $migrationClazz);

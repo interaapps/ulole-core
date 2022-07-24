@@ -19,8 +19,8 @@ class JobModel {
     #[Column]
     public int $repeat;
     #[Column]
-    public int $failed_count;
+    public int $failedCount;
     #[Column]
-    public string $created_at;
+    public string $createdAt;
 
 }

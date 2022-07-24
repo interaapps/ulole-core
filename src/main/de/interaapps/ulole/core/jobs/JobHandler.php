@@ -36,6 +36,9 @@ class JobHandler {
         return false;
     }
 
+    /**
+     * @return JobModel[]|null
+     */
     public function getOpened(): array|null {
         return JobModel::table($this->database)->where("state", "OPEN")->orWhere("state", "FAILED")->get();
     }
@@ -45,7 +48,7 @@ class JobHandler {
         foreach ($this->getOpened() as $jobModel) {
             $jobModel->state = "RUNNING";
             $jobModel->save($this->database);
-            if ($jobModel->failed_count++ < $jobModel->repeat) {
+            if ($jobModel->failedCount++ < $jobModel->repeat) {
                 try {
                     $job = unserialize($jobModel->object);
                     $job->run($this);
