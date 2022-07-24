@@ -1,4 +1,5 @@
 <?php
+
 namespace de\interaapps\ulole\core;
 
 use de\interaapps\ulole\core\config\Configuration;
@@ -8,22 +9,21 @@ use de\interaapps\ulole\orm\UloleORM;
 use de\interaapps\ulole\router\Router;
 
 abstract class WebApplication {
-    private $router;
-    private $environment;
-    private $inCLI = false;
-    private $jobHandler;
+    private Router $router;
+    private Environment $environment;
+    private bool $inCLI = false;
+    private JobHandler $jobHandler;
 
-    public function start(Environment $environment){
+    public function start(Environment $environment) {
         $this->environment = $environment;
 
         $this->router = (new Router)
-            ->setIncludeDirectory("resources/views")
-            ->setNamespace("app\\controller");
+            ->setIncludeDirectory("resources/views");
 
         $this->jobHandler = new JobHandler();
 
         $this->init();
-        
+
         /**
          * If in web and not in cli
          */
@@ -35,49 +35,50 @@ abstract class WebApplication {
         return $this;
     }
 
-    public abstract function init();
-    public abstract function run();
+    public abstract function init(): void;
 
-    public function getRouter() {
+    public abstract function run(): void;
+
+    public function getRouter(): Router {
         return $this->router;
     }
 
-    public function initDatabase($configEntry, $name = null) : WebApplication {
+    public function initDatabase($configEntry, $name = null): WebApplication {
         if ($name === null) {
             $name = "main";
-            $entry = $this->getConfig()->get($configEntry.".name", null);
+            $entry = $this->getConfig()->get($configEntry . ".name", null);
             if ($entry !== null) {
                 $name = $entry;
             }
         }
-        
+
 
         UloleORM::database($name, new Database(
-            $this->getConfig()->get($configEntry.".username"),
-            $this->getConfig()->get($configEntry.".password"),
-            $this->getConfig()->get($configEntry.".database"),
-            $this->getConfig()->get($configEntry.".server", 'localhost'),
-            $this->getConfig()->get($configEntry.".port", 3306),
-            $this->getConfig()->get($configEntry.".driver", "mysql")
+            $this->getConfig()->get($configEntry . ".username"),
+            $this->getConfig()->get($configEntry . ".password"),
+            $this->getConfig()->get($configEntry . ".database"),
+            $this->getConfig()->get($configEntry . ".server", 'localhost'),
+            $this->getConfig()->get($configEntry . ".port", 3306),
+            $this->getConfig()->get($configEntry . ".driver", "mysql")
         ));
 
         return $this;
     }
 
-    public function getEnvironment() : Environment {
+    public function getEnvironment(): Environment {
         return $this->environment;
     }
 
-    public function getConfig() : Configuration {
+    public function getConfig(): Configuration {
         return $this->environment->getConfig();
     }
 
-    public function setInCLI($inCLI) : WebApplication {
+    public function setInCLI($inCLI): WebApplication {
         $this->inCLI = $inCLI;
         return $this;
     }
 
-    public function getJobHandler() : JobHandler {
+    public function getJobHandler(): JobHandler {
         return $this->jobHandler;
     }
 

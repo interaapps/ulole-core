@@ -12,7 +12,8 @@
     	"php": ">=8.0.0",
         "interaapps/uloleorm": "2.0.1",
         "interaapps/jsonplus": "1.0.0",
-        "interaapps/deverm": "5.0.5"
+        "interaapps/deverm": "5.0.5",
+      "ext-pdo": "*"
     },
     "autoload": {
         "psr-4": {

@@ -8,24 +8,22 @@ use de\interaapps\ulole\core\cli\CLIHandler;
 use de\interaapps\ulole\core\cli\Colors;
 use de\interaapps\ulole\core\jobs\JobHandler;
 
-class JobCLI extends CLIHandler
-{
+class JobCLI extends CLIHandler {
 
-    private $jobHandler;
+    private JobHandler $jobHandler;
 
     public function __construct(JobHandler $jobHandler) {
         $this->jobHandler = $jobHandler;
     }
 
-    public function registerCommands(CLI $cli)
-    {
+    public function registerCommands(CLI $cli) {
 
         $cli->register("jobs:work", function ($args) {
             while (true) {
                 Colors::info("Executing...");
 
                 foreach ($this->jobHandler->handleAll() as $exception) {
-                    Colors::error("Error while execution: ".$exception->getMessage());
+                    Colors::error("Error while execution: " . $exception->getMessage());
                 }
                 sleep(isset($args[2]) ? $args[2] : 3);
             }

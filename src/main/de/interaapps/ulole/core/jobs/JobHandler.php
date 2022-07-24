@@ -1,10 +1,10 @@
 <?php
+
 namespace de\interaapps\ulole\core\jobs;
 
-class JobHandler
-{
-    private $database;
-    private $mode = "database";
+class JobHandler {
+    private string $database;
+    private string $mode = "database";
 
     public function __construct($database = "main") {
         $this->database = $database;
@@ -27,19 +27,20 @@ class JobHandler
         return false;
     }
 
-    public function runNow(Job $job) : bool {
+    public function runNow(Job $job): bool {
         try {
             $job->run($this);
             return true;
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
         return false;
     }
 
-    public function getOpened(): array {
-        return JobModel::table($this->database)->where("state", "OPEN")->orWhere("state", "FAILED")->all();
+    public function getOpened(): array|null {
+        return JobModel::table($this->database)->where("state", "OPEN")->orWhere("state", "FAILED")->get();
     }
 
-    public function handleAll() : array {
+    public function handleAll(): array {
         $errors = [];
         foreach ($this->getOpened() as $jobModel) {
             $jobModel->state = "RUNNING";

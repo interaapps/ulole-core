@@ -1,4 +1,5 @@
 <?php
+
 namespace de\interaapps\ulole\core\cli;
 
 use de\interaapps\ulole\core\cli\modules\create\CreateORMCLI;
@@ -9,12 +10,12 @@ use de\interaapps\ulole\core\cli\modules\ReplCLI;
 use de\interaapps\ulole\core\WebApplication;
 
 class CLIBootstrapper {
-    public $cli, $args;
+    public CLI $cli;
 
-    public function __construct($args)
-    {
+    public function __construct(
+        public array $args = []
+    ) {
         $this->cli = new CLI();
-        $this->args = $args;
     }
 
     public function addFrameworkHandlers(WebApplication $app): CLIBootstrapper {
@@ -27,19 +28,17 @@ class CLIBootstrapper {
         return $this;
     }
 
-    public function register(CLIHandler $cliHandler) : CLIBootstrapper
-    {
+    public function register(CLIHandler $cliHandler): CLIBootstrapper {
         $cliHandler->registerCommands($this->cli);
         return $this;
     }
 
-    public function setApplicationAttrib($key, $value): CLIBootstrapper {
+    public function setApplicationAttrib(string $key, mixed $value): CLIBootstrapper {
         $this->cli->setApplicationAttrib($key, $value);
         return $this;
     }
 
-    public function run()
-    {
+    public function run(): void {
         $command = $this->args[1];
         $this->cli->run($this->args, $command);
     }

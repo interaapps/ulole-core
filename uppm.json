@@ -1,14 +1,14 @@
 {
     "name": "ulole-core",
-    "version": "3.0.6",
+    "version": "3.1.0",
     "repositories": [],
     "run": {},
     "build": {},
     "serve": {},
     "modules": {
-        "interaapps\/jsonplus": "1.0.0",
-        "uloleorm": "2.0.1",
-        "deverm": "5.0.2"
+        "interaapps\/jsonplus": "1.0.5",
+        "uloleorm": "3.1.1",
+        "deverm": "5.1.0"
     },
     "namespaceBindings": {
         "de\\interaapps\\ulole\\core": "src/main/de\/interaapps\/ulole\/core"

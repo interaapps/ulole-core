@@ -1,4 +1,5 @@
 <?php
+
 namespace de\interaapps\ulole\core\jobs;
 
 
@@ -6,9 +7,9 @@ use de\interaapps\ulole\orm\Database;
 use de\interaapps\ulole\orm\migration\Blueprint;
 use de\interaapps\ulole\orm\migration\Migration;
 
-class JobsMigration implements Migration
-{
+class JobsMigration implements Migration {
     private $tableName = "uloleorm_jobs";
+
     public function up(Database $database) {
         return $database->create($this->tableName, function (Blueprint $blueprint) {
             $blueprint->id();
