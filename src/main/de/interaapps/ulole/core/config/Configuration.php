@@ -17,8 +17,10 @@ class Configuration {
     }
 
     public function loadENV(): Configuration {
+        $parsed = [];
         foreach (getenv() as $key => $val)
-            $this->configEntries[$key] = $val;
+            $parsed[str_replace("_", ".", $key)] = $val;
+        $this->insertRecursive($parsed);
         return $this;
     }
 
@@ -58,7 +60,7 @@ class Configuration {
             if (is_array($value) || is_object($value)) {
                 $this->insertRecursive($value, $parentString . strtolower($key));
             } else {
-                $this->configEntries[$parentString . ((string)strtolower($key))] = $value;
+                $this->configEntries[$parentString . (strtolower($key))] = $value;
             }
         }
     }
