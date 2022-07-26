@@ -7,6 +7,7 @@ use de\interaapps\ulole\core\cli\CLIHandler;
 use de\interaapps\ulole\core\cli\Colors;
 use de\interaapps\ulole\orm\migration\Migrator;
 use de\interaapps\ulole\orm\migration\table\MigrationModel;
+use de\interaapps\ulole\orm\UloleORM;
 
 class ORMCLI extends CLIHandler {
     public function registerCommands(CLI $cli) {
@@ -18,6 +19,10 @@ class ORMCLI extends CLIHandler {
                 ->fromFolder("resources/migrations")
                 ->up();
         }, "Migrates a database");
+
+        $cli->register("migrate:auto", function () {
+            UloleORM::autoMigrate();
+        }, "Calls UloleORM::autoMigrate()");
 
         $cli->register("migrate:down", function ($args) {
             if (!isset($args[2]))
