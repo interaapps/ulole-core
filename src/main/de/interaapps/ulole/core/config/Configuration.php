@@ -16,6 +16,12 @@ class Configuration {
         return $this;
     }
 
+    public function loadENV(): Configuration {
+        foreach (getenv() as $key => $val)
+            $this->configEntries[$key] = $val;
+        return $this;
+    }
+
     public function loadENVFile($file, $parent = null): Configuration {
         if (file_exists($file)) {
             $envFile = file_get_contents($file);
