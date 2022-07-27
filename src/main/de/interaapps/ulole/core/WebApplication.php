@@ -54,12 +54,12 @@ abstract class WebApplication {
 
 
         UloleORM::database($name, new Database(
-            $this->getConfig()->get($configEntry . ".username"),
-            $this->getConfig()->get($configEntry . ".password"),
-            $this->getConfig()->get($configEntry . ".database"),
-            $this->getConfig()->get($configEntry . ".server", 'localhost'),
-            $this->getConfig()->get($configEntry . ".port", 3306),
-            $this->getConfig()->get($configEntry . ".driver", "mysql")
+            username: $this->getConfig()->get($configEntry . ".username"),
+            password: $this->getConfig()->get($configEntry . ".password"),
+            database: $this->getConfig()->get($configEntry . ".database"),
+            host:     $this->getConfig()->get($configEntry . ".server", 'localhost'),
+            port:     $this->getConfig()->get($configEntry . ".port", 3306),
+            driver:   $this->getConfig()->get($configEntry . ".driver", "mysql")
         ));
 
         return $this;
