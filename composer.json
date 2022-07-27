@@ -10,7 +10,7 @@
     ],
     "require": {
     	"php": ">=8.0.0",
-        "interaapps/uloleorm": "3.2.0",
+        "interaapps/uloleorm": "3.2.2",
         "interaapps/jsonplus": "1.0.5",
         "interaapps/deverm": "5.2.0",
       "ext-pdo": "*"

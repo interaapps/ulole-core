@@ -7,7 +7,7 @@
     "serve": {},
     "modules": {
         "interaapps\/jsonplus": "1.0.5",
-        "uloleorm": "3.2.0",
+        "uloleorm": "3.2.2",
         "deverm": "5.2.0"
     },
     "namespaceBindings": {
