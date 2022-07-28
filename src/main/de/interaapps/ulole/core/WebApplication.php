@@ -2,6 +2,7 @@
 
 namespace de\interaapps\ulole\core;
 
+use de\interaapps\ulole\core\cli\CLIBootstrapper;
 use de\interaapps\ulole\core\config\Configuration;
 use de\interaapps\ulole\core\jobs\JobHandler;
 use de\interaapps\ulole\orm\Database;
@@ -14,11 +15,12 @@ abstract class WebApplication {
     private bool $inCLI = false;
     private JobHandler $jobHandler;
 
-    public function start(Environment $environment) {
+    public function start(Environment $environment) : WebApplication {
         $this->environment = $environment;
 
-        $this->router = (new Router)
-            ->setIncludeDirectory("resources/views");
+        $this->router = (new Router())
+            ->setIncludeDirectory("resources/views")
+            ->jsonResponseTransformer();
 
         $this->jobHandler = new JobHandler();
 
@@ -38,6 +40,8 @@ abstract class WebApplication {
     public abstract function init(): void;
 
     public abstract function run(): void;
+
+    public function initCLI(CLIBootstrapper $cli): void {}
 
     public function getRouter(): Router {
         return $this->router;
